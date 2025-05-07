@@ -5,6 +5,8 @@
 #include <QString>
 #include <QStringList>
 
+#include "cylinder.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Dialog;
@@ -19,30 +21,30 @@ public:
     Dialog(QWidget *parent = nullptr);
     ~Dialog();
 
+    float get_radius();
+    float get_width();
+    float get_type();
+    void set_type();
+
+    void update_cylinder();
+
 private slots:
-    void on_cbox_space_currentIndexChanged(int index);
+    void space_changed(int index);
 
-    void on_cbox_units_currentIndexChanged(int index);
-
-    void on_cbox_model_currentIndexChanged(int index);
+    void model_changed(int index);
 
     void on_btn_save_clicked();
 
-    void on_txtbox_para1_textChanged();
+    void set_radius();
 
-    void on_txtbox_para2_textChanged();
+    void set_width();
 
 private:
     Ui::Dialog *ui;
+    Cylinder *cylinder;
     QStringList space_lst;
     QStringList units_lst;
     QStringList model_lst;
-
-    void change_visuals();
-    void create_visuals(QString space, QString unit, QString model);
-
-    float radius;
-    float width;
 };
 
 #endif // DIALOG_H

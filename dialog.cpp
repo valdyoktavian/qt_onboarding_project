@@ -1,10 +1,6 @@
 #include "dialog.h"
 #include "./ui_dialog.h"
-
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QGraphicsEllipseItem>
-#include <QGraphicsRectItem>
+#include "visuals.h"
 
 #include <QFile>
 #include <QJsonDocument>
@@ -12,15 +8,15 @@
 #include <QJsonArray>
 #include <QFileInfo>
 
-
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::Dialog)
+    , ui(new Ui::Dialog), cylinder(new Cylinder(0,0,0))
 {
     ui->setupUi(this);
 
-    space_lst.append("2D");
     space_lst.append("3D");
+    space_lst.append("2D");
+
 
     units_lst.append("m");
     units_lst.append("mm");
@@ -33,16 +29,20 @@ Dialog::Dialog(QWidget *parent)
     ui->cbox_units->addItems(units_lst);
     ui->cbox_model->addItems(model_lst);
 
-    radius = 0;
-    width = 0;
+    this->cylinder->set_radius(0);
+    this->cylinder->set_width(0);
+    this->cylinder->set_type("3D", "U");
 
     // resets the scene since sometimes it shows a cylinder at the start for some reason
     QGraphicsScene* scene = new QGraphicsScene;
     scene->clear();
     ui->graphicsView->setScene(scene);
 
-    // qInfo() << "test, radius and width are: " << radius << width;
-
+    // connections
+    connect (ui->line_radius, &QLineEdit::textChanged, this, &Dialog::set_radius);
+    connect (ui->line_width, &QLineEdit::textChanged, this, &Dialog::set_width);
+    connect (ui->cbox_model, &QComboBox::currentIndexChanged, this, &Dialog::model_changed);
+    connect (ui->cbox_space, &QComboBox::currentIndexChanged, this, &Dialog::space_changed);
 }
 
 Dialog::~Dialog()
@@ -50,80 +50,7 @@ Dialog::~Dialog()
     delete ui;
 }
 
-void Dialog::create_visuals(QString space, QString unit, QString model)
-{   if (radius == 0 || width == 0)
-    {
-        qInfo() << "radius or width is 0";
-        return;
-    }
-
-
-    if (space == "2D")
-    {
-        QGraphicsScene* scene = new QGraphicsScene;
-        // circle
-        scene->addRect(0, 0, 256, 192, Qt::NoPen, QBrush(Qt:: lightGray));
-        scene->addEllipse(256/2-this->radius/2, 192/2-this->radius/2, this->radius, this->radius, QPen(Qt::black), QBrush(Qt::gray));
-        ui->graphicsView->setScene(scene);
-    }
-    else
-    {
-        if (model == "U")
-        {
-            // make the default cylinder
-            // qInfo() << "test, radius and width are: " << radius << width;
-
-            QGraphicsScene* scene = new QGraphicsScene;
-            int y = this->radius + this->width;
-            // Bottom ellipse (cylinder bottom)
-            scene->addEllipse(50, y, this->radius*2, this->radius/2, QPen(Qt::black), QBrush(Qt::lightGray));
-
-            // Body (cylinder body)
-            scene->addRect(50, y - this->width + this->radius/4, this->radius*2, this->width, QPen(Qt::lightGray), QBrush(Qt::lightGray));
-
-            // Top ellipse (cylinder top)
-            scene->addEllipse(50, y - this->width, this->radius*2,  this->radius/2, QPen(Qt::black), QBrush(Qt::gray));
-
-            ui->graphicsView->setScene(scene);
-        }
-        else
-        {
-            // make the long cylinder
-            QGraphicsScene* scene = new QGraphicsScene;
-
-            int x = this->radius + this->width;
-            // Bottom ellipse (cylinder bottom)
-            scene->addEllipse(x, 100, this->radius/2, this->radius*2, QPen(Qt::black), QBrush(Qt::lightGray));
-
-            // Body (cylinder body)
-            scene->addRect(x-this->width + this->radius/4, 100, this->width, this->radius*2, QPen(Qt::lightGray), QBrush(Qt::lightGray));
-
-            // Top ellipse (cylinder top)
-            scene->addEllipse(x - this->width, 100, this->radius/2, this->radius*2, QPen(Qt::black), QBrush(Qt::gray));
-
-            ui->graphicsView->setScene(scene);
-        }
-    }
-}
-
-void Dialog::change_visuals()
-{
-    QString space = ui->cbox_space->currentText();
-    QString unit  = ui->cbox_units->currentText();
-    QString model = ui->cbox_model->currentText();
-
-    qDebug() << "Space:" << space;
-    qDebug() << "Unit:" << unit;
-    qDebug() << "Model:" << model;
-
-    QGraphicsScene* scene = new QGraphicsScene;
-    scene->clear();
-    ui->graphicsView->setScene(scene);
-
-    create_visuals(space, unit, model);
-}
-
-void Dialog::on_cbox_space_currentIndexChanged(int index)
+void Dialog::space_changed(int index)
 {
     Q_UNUSED(index);
     if (ui->cbox_space->currentText() == "2D")
@@ -136,22 +63,14 @@ void Dialog::on_cbox_space_currentIndexChanged(int index)
             QString u = "U";
             ui->cbox_model->setCurrentText(u);
         }
-    change_visuals();
+
+    this->cylinder->set_type(ui->cbox_space->currentText(), ui->cbox_model->currentText());
+    Visuals::change_visuals(this->cylinder, ui);
 }
 
-
-void Dialog::on_cbox_units_currentIndexChanged(int index)
+void Dialog::model_changed(int index)
 {
     Q_UNUSED(index);
-    change_visuals();
-}
-
-
-void Dialog::on_cbox_model_currentIndexChanged(int index)
-{
-    Q_UNUSED(index);
-    change_visuals();
-
     if(ui->cbox_model->currentText() == "T")
     {
         QString a = "2D";
@@ -162,9 +81,9 @@ void Dialog::on_cbox_model_currentIndexChanged(int index)
         QString b = "3D";
         ui->cbox_space->setCurrentText(b);
     }
+    this->cylinder->set_type(ui->cbox_space->currentText(), ui->cbox_model->currentText());
+    Visuals::change_visuals(this->cylinder, ui);
 }
-
-
 
 void Dialog::on_btn_save_clicked()
 {
@@ -172,8 +91,8 @@ void Dialog::on_btn_save_clicked()
     object["Space"] =  ui->cbox_space->currentText();
     object["Units"] = ui->cbox_units->currentText();
     object["Model"] = ui->cbox_model->currentText();
-    object["Radius"] = this->radius;
-    object["Width/Height"] = this->width;
+    object["Radius"] = this->cylinder->get_radius();
+    object["Width/Height"] = this->cylinder->get_width();
 
     QJsonDocument doc(object);
     QFile file("Cylinder_Details.json");
@@ -190,30 +109,40 @@ void Dialog::on_btn_save_clicked()
 
 }
 
-
-void Dialog::on_txtbox_para1_textChanged()
+float Dialog::get_radius()
+{
+    return this->cylinder->get_radius();
+}
+float Dialog::get_width()
+{
+    return this->cylinder->get_width();
+}
+void Dialog::set_radius()
 {
     bool ok = false;
-    this->radius = ui->txtbox_para1->toPlainText().toInt(&ok);
+    int new_radius = ui->line_radius->text().toInt(&ok);
     if (!ok)
-    {
-        qInfo() << "Invalid radius has been inputed!";
-        this->radius = 0;
-    }
-    change_visuals();
+        this->cylinder->set_radius(0);
+    this->cylinder->set_radius(new_radius);
+
+    Visuals::change_visuals(this->cylinder, ui);
+}
+void Dialog::set_width()
+{
+    bool ok = false;
+    int new_width = ui->line_width->text().toInt(&ok);
+    if (!ok)
+        this->cylinder->set_width(new_width);
+    this->cylinder->set_width(new_width);
+
+    Visuals::change_visuals(this->cylinder, ui);
 }
 
-
-
-void Dialog::on_txtbox_para2_textChanged()
+void Dialog::set_type()
 {
-    bool ok = false;
-    this->width = ui->txtbox_para2->toPlainText().toInt(&ok);
-    if (!ok)
-    {
-        qInfo() << "Invalid width has been inputed!";
-        this->width = 0;
-    }
-    change_visuals();
+    QString space =  ui->cbox_space->currentText();
+    QString model = ui->cbox_model->currentText();
+
+    this->cylinder->set_type(space, model);
 }
 

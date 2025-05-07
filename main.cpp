@@ -1,4 +1,6 @@
 #include "dialog.h"
+#include "cylinder.h"
+#include "visuals.h"
 
 #include <QApplication>
 

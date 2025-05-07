@@ -23,6 +23,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(FirstProject
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        visuals.h
+        visuals.cpp
+        cylinder.h
+        cylinder.cpp
+        styles.qrc
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FirstProject APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
