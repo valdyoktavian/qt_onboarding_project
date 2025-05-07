@@ -28,6 +28,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         cylinder.h
         cylinder.cpp
         styles.qrc
+        file_management.h
+        file_management.h file_management.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FirstProject APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -1,13 +1,8 @@
 #include "dialog.h"
 #include "./ui_dialog.h"
 #include "visuals.h"
-
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QFileInfo>
-
+#include "file_management.h"
+#include <QFileDialog>
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Dialog), cylinder(new Cylinder(0,0,0))
@@ -43,6 +38,8 @@ Dialog::Dialog(QWidget *parent)
     connect (ui->line_width, &QLineEdit::textChanged, this, &Dialog::set_width);
     connect (ui->cbox_model, &QComboBox::currentIndexChanged, this, &Dialog::model_changed);
     connect (ui->cbox_space, &QComboBox::currentIndexChanged, this, &Dialog::space_changed);
+    connect (ui->btn_save, &QPushButton::clicked, this, &Dialog::save_button_response);
+    connect (ui->btn_load, &QPushButton::clicked, this, &Dialog::load_button_reponse);
 }
 
 Dialog::~Dialog()
@@ -85,28 +82,15 @@ void Dialog::model_changed(int index)
     Visuals::change_visuals(this->cylinder, ui);
 }
 
-void Dialog::on_btn_save_clicked()
+void Dialog::save_button_response()
 {
-    QJsonObject object;
-    object["Space"] =  ui->cbox_space->currentText();
-    object["Units"] = ui->cbox_units->currentText();
-    object["Model"] = ui->cbox_model->currentText();
-    object["Radius"] = this->cylinder->get_radius();
-    object["Width/Height"] = this->cylinder->get_width();
+    QString space =  ui->cbox_space->currentText();
+    QString units = ui->cbox_units->currentText();
+    QString model = ui->cbox_model->currentText();
+    float radius = this->cylinder->get_radius();
+    float width = this->cylinder->get_width();
 
-    QJsonDocument doc(object);
-    QFile file("Cylinder_Details.json");
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning() << "Couldn't open file to write JSON!";
-        return;
-    }
-
-    qDebug() << "Saved to:" << QFileInfo(file).absoluteFilePath();
-
-    file.write(doc.toJson(QJsonDocument::Indented));
-    file.close();
-
+    file_management::save_file(space, units, model, radius, width);
 }
 
 float Dialog::get_radius()
@@ -145,4 +129,32 @@ void Dialog::set_type()
 
     this->cylinder->set_type(space, model);
 }
+
+void Dialog::load_button_reponse(){
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        "Open JSON File",
+        "",
+        "JSON Files (*.json);;All Files (*)"
+        );
+
+    if (filePath.isEmpty()) {
+        qDebug() << "No file selected.";
+        return;
+    }
+    std::tuple<QString, QString, QString, float, float> new_values = file_management::load_file(filePath);
+
+    ui->cbox_space->setCurrentText(std::get<0>(new_values));
+    ui->cbox_units->setCurrentText(std::get<1>(new_values));
+    ui->cbox_model->setCurrentText(std::get<2>(new_values));
+    ui->line_radius->setText(QString::number(std::get<3>(new_values), 'f', 0));
+    ui->line_width->setText(QString::number(std::get<4>(new_values), 'f', 0));
+
+    this->cylinder->set_radius(std::get<3>(new_values));
+    this->cylinder->set_width(std::get<4>(new_values));
+    this->cylinder->set_type(std::get<0>(new_values), std::get<2>(new_values));
+
+    Visuals::change_visuals(this->cylinder, ui);
+}
+
 

@@ -33,11 +33,13 @@ private slots:
 
     void model_changed(int index);
 
-    void on_btn_save_clicked();
+    void save_button_response();
 
     void set_radius();
 
     void set_width();
+
+    void load_button_reponse();
 
 private:
     Ui::Dialog *ui;
