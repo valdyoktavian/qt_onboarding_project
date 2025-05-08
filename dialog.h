@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QString>
 #include <QStringList>
+#include <QGraphicsScene>
 
 #include "cylinder.h"
 
@@ -24,8 +25,8 @@ public:
     float get_radius();
     float get_width();
     float get_type();
+    void set_drawingtype();
     void set_type();
-
     void update_cylinder();
 
 private slots:
@@ -41,12 +42,24 @@ private slots:
 
     void load_button_reponse();
 
+    void radio_free_response();
+
+    void radio_square_response();
+
+    void radio_circle_response();
+
+    void radio_line_response();
+
+    void radio_eraser_response();
+
+    void radio_none_response();
 private:
     Ui::Dialog *ui;
     Cylinder *cylinder;
     QStringList space_lst;
     QStringList units_lst;
     QStringList model_lst;
+    QGraphicsScene* scene;
 };
 
 #endif // DIALOG_H

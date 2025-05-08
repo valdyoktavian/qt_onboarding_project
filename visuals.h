@@ -14,8 +14,8 @@ class Visuals
 public:
     Visuals();
     ~Visuals();
-    static void change_visuals(Cylinder *cylinder, Ui::Dialog *ui);
-    static void create_visuals(Cylinder *cylinder, Ui::Dialog *ui);
+    static void change_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene);
+    static void create_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene);
 };
 
 

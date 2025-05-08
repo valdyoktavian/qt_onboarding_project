@@ -3,6 +3,9 @@
 #include "visuals.h"
 #include "file_management.h"
 #include <QFileDialog>
+#include <QStatusBar>
+#include "graphicsview.h"
+
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Dialog), cylinder(new Cylinder(0,0,0))
@@ -29,9 +32,10 @@ Dialog::Dialog(QWidget *parent)
     this->cylinder->set_type("3D", "U");
 
     // resets the scene since sometimes it shows a cylinder at the start for some reason
-    QGraphicsScene* scene = new QGraphicsScene;
-    scene->clear();
-    ui->graphicsView->setScene(scene);
+    QGraphicsScene* new_scene = new QGraphicsScene;
+    this->scene = new_scene;
+    this->scene->clear();
+    ui->graphicsView->setScene(this->scene);
 
     // connections
     connect (ui->line_radius, &QLineEdit::textChanged, this, &Dialog::set_radius);
@@ -40,6 +44,23 @@ Dialog::Dialog(QWidget *parent)
     connect (ui->cbox_space, &QComboBox::currentIndexChanged, this, &Dialog::space_changed);
     connect (ui->btn_save, &QPushButton::clicked, this, &Dialog::save_button_response);
     connect (ui->btn_load, &QPushButton::clicked, this, &Dialog::load_button_reponse);
+    connect (ui->radio_free, &QRadioButton::clicked, this, &Dialog::radio_free_response);
+    connect (ui->radio_square, &QRadioButton::clicked, this, &Dialog::radio_square_response);
+    connect (ui->radio_none, &QRadioButton::clicked, this, &Dialog::radio_none_response);
+
+    // graphics view stuff
+    GraphicsView* customView = new GraphicsView(this);
+    customView->setScene(new QGraphicsScene(this));  // create and set scene
+    customView->setMouseTracking(true);
+    customView->scene = this->scene;
+
+    ui->gridLayout->replaceWidget(ui->graphicsView, customView);
+
+    // Optional: clean up and assign if you plan to use ui->graphicsView later
+    ui->graphicsView->deleteLater();
+    ui->graphicsView = customView;
+
+    ui->radio_none->setChecked(true);
 }
 
 Dialog::~Dialog()
@@ -62,7 +83,7 @@ void Dialog::space_changed(int index)
         }
 
     this->cylinder->set_type(ui->cbox_space->currentText(), ui->cbox_model->currentText());
-    Visuals::change_visuals(this->cylinder, ui);
+    Visuals::change_visuals(this->cylinder, ui, this->scene);
 }
 
 void Dialog::model_changed(int index)
@@ -79,7 +100,7 @@ void Dialog::model_changed(int index)
         ui->cbox_space->setCurrentText(b);
     }
     this->cylinder->set_type(ui->cbox_space->currentText(), ui->cbox_model->currentText());
-    Visuals::change_visuals(this->cylinder, ui);
+    Visuals::change_visuals(this->cylinder, ui, this->scene);
 }
 
 void Dialog::save_button_response()
@@ -103,23 +124,39 @@ float Dialog::get_width()
 }
 void Dialog::set_radius()
 {
+    if (ui->line_radius->text().isEmpty())
+    {
+        ui->status_radius->setText("");
+        return;
+    }
     bool ok = false;
     int new_radius = ui->line_radius->text().toInt(&ok);
     if (!ok)
+    {
+        ui->status_radius->setText("Invalid Input! Please enter a number.");
         this->cylinder->set_radius(0);
+    }
     this->cylinder->set_radius(new_radius);
 
-    Visuals::change_visuals(this->cylinder, ui);
+    Visuals::change_visuals(this->cylinder, ui, this->scene);
 }
 void Dialog::set_width()
 {
+    if (ui->line_width->text().isEmpty())
+    {
+        ui->status_width->setText("");
+        return;
+    }
     bool ok = false;
     int new_width = ui->line_width->text().toInt(&ok);
-    if (!ok)
-        this->cylinder->set_width(new_width);
+    if (!ok or new_width < 0)
+    {
+        ui->status_width->setText("Invalid Input! Please enter a number.");
+        this->cylinder->set_width(0);
+    }
     this->cylinder->set_width(new_width);
 
-    Visuals::change_visuals(this->cylinder, ui);
+    Visuals::change_visuals(this->cylinder, ui, this->scene);
 }
 
 void Dialog::set_type()
@@ -154,7 +191,51 @@ void Dialog::load_button_reponse(){
     this->cylinder->set_width(std::get<4>(new_values));
     this->cylinder->set_type(std::get<0>(new_values), std::get<2>(new_values));
 
-    Visuals::change_visuals(this->cylinder, ui);
+    Visuals::change_visuals(this->cylinder, ui, this->scene);
 }
+
+void Dialog::radio_free_response(){
+    GraphicsView* gv = qobject_cast<GraphicsView*>(ui->graphicsView);
+    if (gv) {
+        gv->type = 0;  // ✅ access your custom field
+    }
+}
+
+void Dialog::radio_square_response(){
+    // GraphicsView* gv = qobject_cast<GraphicsView*>(ui->graphicsView);
+    // if (gv) {
+    //     gv->type = 1;  // ✅ access your custom field
+    // }
+}
+
+void Dialog::radio_circle_response(){
+    GraphicsView* gv = qobject_cast<GraphicsView*>(ui->graphicsView);
+    if (gv) {
+        gv->type = 2;  // ✅ access your custom field
+    }
+}
+
+void Dialog::radio_line_response(){
+    GraphicsView* gv = qobject_cast<GraphicsView*>(ui->graphicsView);
+    if (gv) {
+        gv->type = 3;  // ✅ access your custom field
+    }
+}
+
+void Dialog::radio_eraser_response(){
+    GraphicsView* gv = qobject_cast<GraphicsView*>(ui->graphicsView);
+    if (gv) {
+        gv->type = 4;  // ✅ access your custom field
+    }
+}
+
+void Dialog::radio_none_response(){
+    GraphicsView* gv = qobject_cast<GraphicsView*>(ui->graphicsView);
+    if (gv) {
+        gv->type = 5;  // ✅ access your custom field
+    }
+}
+
+
 
 

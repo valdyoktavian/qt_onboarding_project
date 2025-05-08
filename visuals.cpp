@@ -7,19 +7,18 @@ Visuals::Visuals() {}
 
 Visuals::~Visuals(){}
 
-void Visuals::create_visuals(Cylinder *cylinder, Ui::Dialog *ui)
+void Visuals::create_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene)
 {
 
     float radius = cylinder->get_radius();
     float width = cylinder->get_width();
-    qInfo() << "test, radius and width are: " << radius << width;
+    // qInfo() << "test, radius and width are: " << radius << width;
     if (cylinder->get_radius() == 0 || cylinder->get_width() == 0)
     {
-        qInfo() << "radius or width is 0";
+        // qInfo() << "radius or width is 0";
         return;
     }
 
-     QGraphicsScene* scene = new QGraphicsScene;
     if (cylinder->get_type() == 0)
     {
         // make the default cylinder
@@ -67,11 +66,10 @@ void Visuals::create_visuals(Cylinder *cylinder, Ui::Dialog *ui)
     ui->graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
-void Visuals::change_visuals(Cylinder *cylinder, Ui::Dialog *ui)
+void Visuals::change_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene)
 {
-    QGraphicsScene* scene = new QGraphicsScene;
     scene->clear();
     ui->graphicsView->setScene(scene);
 
-    create_visuals(cylinder, ui);
+    create_visuals(cylinder, ui, scene);
 }
