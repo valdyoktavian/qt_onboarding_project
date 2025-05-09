@@ -1,8 +1,12 @@
 #ifndef CYLINDER_H
 #define CYLINDER_H
+#include "drawable.h"
 
 #include <QString>
-class Cylinder
+#include <QDialog>
+#include "ui_dialog.h"
+
+class Cylinder : public drawable
 {
 public:
     Cylinder(float radius, float width, int type);
@@ -20,6 +24,9 @@ public:
     void set_radius(float radius);
     void set_width(float width);
     void set_type(QString space, QString model);
+
+    void draw_object(QGraphicsScene *scene) override;
+    Ui::Dialog *ui;
 };
 
 #endif // CYLINDER_H

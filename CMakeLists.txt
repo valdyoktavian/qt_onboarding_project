@@ -34,6 +34,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graphicsview.h graphicsview.cpp
 
         splinedrawing.h splinedrawing.cpp
+        square.h square.cpp
+        drawable.h drawable.cpp
+        circle.h circle.cpp
+        line.h line.cpp
+        freedraw.h freedraw.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FirstProject APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

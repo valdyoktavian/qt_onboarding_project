@@ -8,13 +8,13 @@
 #include <QGraphicsRectItem>
 #include "cylinder.h"
 #include "dialog.h"
-
+#include "graphicsview.h"
 class Visuals
 {
 public:
     Visuals();
     ~Visuals();
-    static void change_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene);
+    static void change_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene,  GraphicsView *customview);
     static void create_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene);
 };
 

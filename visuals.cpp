@@ -66,10 +66,10 @@ void Visuals::create_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene 
     ui->graphicsView->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
 }
 
-void Visuals::change_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene)
-{
-    scene->clear();
-    ui->graphicsView->setScene(scene);
+void Visuals::change_visuals(Cylinder *cylinder, Ui::Dialog *ui, QGraphicsScene *scene,  GraphicsView *customviews){
+    // scene->clear();
+    // ui->graphicsView->setScene(scene);
 
     create_visuals(cylinder, ui, scene);
+    customviews->draw_screen();
 }

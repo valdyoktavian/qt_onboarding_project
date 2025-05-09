@@ -53,6 +53,7 @@ private slots:
     void radio_eraser_response();
 
     void radio_none_response();
+
 private:
     Ui::Dialog *ui;
     Cylinder *cylinder;
